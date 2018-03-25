@@ -18,7 +18,7 @@ func CreateGetMarket(gorm gorm.DB, quote string, ticker string) PoloniexMarket {
 }
 
 func AddTicker(gorm gorm.DB, Ask float64, Bid float64, market PoloniexMarket) PoloniexTicker {
-	ticker := PoloniexTicker{0, market.ID, Ask, Bid, int64(time.Now().Unix())}
+	ticker := PoloniexTicker{0, market.ID, Ask, Bid, time.Now()}
 	err := gorm.Create(&ticker).Error
 	if err != nil{
 		panic(err)
@@ -27,7 +27,7 @@ func AddTicker(gorm gorm.DB, Ask float64, Bid float64, market PoloniexMarket) Po
 }
 
 func AddOrderBook(gorm gorm.DB, market PoloniexMarket) PoloniexOrderBook{
-	book := PoloniexOrderBook{0, market.ID, int64(time.Now().Unix())}
+	book := PoloniexOrderBook{0, market.ID, time.Now()}
 	err := gorm.Create(&book).Error
 	if err != nil{
 		panic(err)
@@ -36,7 +36,7 @@ func AddOrderBook(gorm gorm.DB, market PoloniexMarket) PoloniexOrderBook{
 }
 
 func AddOrder(Gorm gorm.DB, Book PoloniexOrderBook, Rate float64, Quantity float64, Type int64, Buy bool){
-	order := PoloniexOrder{0, Book.ID, Rate, Quantity, Type, Buy, int64(time.Now().Unix())}
+	order := PoloniexOrder{0, Book.ID, Rate, Quantity, Type, Buy, time.Now()}
 	err := Gorm.Create(&order).Error
 	if err != nil{
 		panic(err)
