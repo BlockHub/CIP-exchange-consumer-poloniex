@@ -5,7 +5,7 @@ import "time"
 type PoloniexOrderBook struct {
 	ID uint 			`gorm:"primary_key"`
 	MarketID uint 		`gorm:"index"`
-	Time time.Time		`gorm:"index"`
+	Time time.Time		`gorm:"primary_key"`
 }
 
 type PoloniexOrder struct {
@@ -16,7 +16,7 @@ type PoloniexOrder struct {
 	// 0: initial, 1: orderBookModify, 2: orderBookRemove
 	Type int64
 	Buy bool
-	Time time.Time		`gorm:"index"`
+	Time time.Time		`gorm:"primary_key"`
 }
 
 type PoloniexMarket struct {
@@ -30,5 +30,5 @@ type PoloniexTicker struct {
 	MarketID uint		`gorm:"index"`
 	Ask float64
 	Bid float64
-	Time time.Time		`gorm:"index"`
+	Time time.Time		`gorm:"primary_key"`
 }
