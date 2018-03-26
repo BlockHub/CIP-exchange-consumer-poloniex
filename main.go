@@ -51,15 +51,15 @@ func main() {
 	if err != nil{
 		panic(err)
 	}
-	err = gormdb.Exec("SELECT create_hypertable('poloniex_orders', 'time', if_not_exists => TRUE)").Error
+	err = gormdb.Exec("SELECT create_hypertable('poloniex_orders', 'time', 'orderbook_id', if_not_exists => TRUE)").Error
 	if err != nil{
 		panic(err)
 	}
-	err = gormdb.Exec("SELECT create_hypertable('poloniex_tickers', 'time', if_not_exists => TRUE)").Error
+	err = gormdb.Exec("SELECT create_hypertable('poloniex_tickers', 'time', 'market_id', if_not_exists => TRUE)").Error
 	if err != nil{
 		panic(err)
 	}
-	err =gormdb.Exec("SELECT create_hypertable('poloniex_order_books', 'time', if_not_exists => TRUE)").Error
+	err =gormdb.Exec("SELECT create_hypertable('poloniex_order_books', 'time', 'market_id', if_not_exists => TRUE)").Error
 	if err != nil{
 		panic(err)
 	}
