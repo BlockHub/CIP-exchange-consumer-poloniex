@@ -47,6 +47,22 @@ func main() {
 	defer gormdb.Close()
 
 	gormdb.AutoMigrate(&db.PoloniexTicker{}, &db.PoloniexMarket{}, &db.PoloniexOrder{}, &db.PoloniexOrderBook{})
+	err = gormdb.Exec("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;").Error
+	if err != nil{
+		panic(err)
+	}
+	err = gormdb.Exec("SELECT create_hypertable('poloniex_orders', 'time', if_not_exists => TRUE)").Error
+	if err != nil{
+		panic(err)
+	}
+	err = gormdb.Exec("SELECT create_hypertable('poloniex_tickers', 'time', if_not_exists => TRUE)").Error
+	if err != nil{
+		panic(err)
+	}
+	err =gormdb.Exec("SELECT create_hypertable('poloniex_order_books', 'time', if_not_exists => TRUE)").Error
+	if err != nil{
+		panic(err)
+	}
 	gormdb.DB().SetMaxOpenConns(1000)
 
 
