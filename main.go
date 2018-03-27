@@ -14,6 +14,7 @@ import (
 
 	"strings"
 	"fmt"
+	"github.com/getsentry/raven-go"
 )
 
 // uses rest api to create new orderbook and passes orderbook instances
@@ -33,35 +34,49 @@ func init_orderbook(client poloniex.Poloniex , market db.PoloniexMarket, gorm go
 	return book
 }
 
+func init(){
+	useDotenv := true
+	if os.Getenv("PRODUCTION") == "true"{
+		useDotenv = false
+	}
+
+	// this loads all the constants stored in the .env file (not suitable for production)
+	// set variables in supervisor then.
+	if useDotenv {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal(err)
+			panic(err)
+		}
+	}
+	raven.SetDSN(os.Getenv("RAVEN_DSN"))
+}
+
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 
 	gormdb, err := gorm.Open(os.Getenv("DB"), os.Getenv("DB_URL"))
 	if err != nil {
-		panic(err)
+		raven.CaptureErrorAndWait(err, nil)
 	}
 	defer gormdb.Close()
 
 	gormdb.AutoMigrate(&db.PoloniexTicker{}, &db.PoloniexMarket{}, &db.PoloniexOrder{}, &db.PoloniexOrderBook{})
 	err = gormdb.Exec("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;").Error
 	if err != nil{
-		panic(err)
+		raven.CaptureErrorAndWait(err, nil)
 	}
 	err = gormdb.Exec("SELECT create_hypertable('poloniex_orders', 'time', 'orderbook_id', if_not_exists => TRUE)").Error
 	if err != nil{
-		panic(err)
+		raven.CaptureErrorAndWait(err, nil)
 	}
 	err = gormdb.Exec("SELECT create_hypertable('poloniex_tickers', 'time', 'market_id', if_not_exists => TRUE)").Error
 	if err != nil{
-		panic(err)
+		raven.CaptureErrorAndWait(err, nil)
 	}
 	err =gormdb.Exec("SELECT create_hypertable('poloniex_order_books', 'time', 'market_id', if_not_exists => TRUE)").Error
 	if err != nil{
-		panic(err)
+		raven.CaptureErrorAndWait(err, nil)
 	}
 	gormdb.DB().SetMaxOpenConns(1000)
 
@@ -70,7 +85,7 @@ func main() {
 	// get the ticker so we know all available markets
 	tickers, err := restClient.Ticker()
 		if err != nil{
-		panic(err)
+			raven.CaptureErrorAndWait(err, nil)
 	}
 	ws := poloniex.NewWithCredentials("", "")
 
