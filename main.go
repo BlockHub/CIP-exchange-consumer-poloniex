@@ -13,7 +13,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 
 	"strings"
-	"fmt"
 	"github.com/getsentry/raven-go"
 )
 
@@ -106,7 +105,6 @@ func main() {
 	tickerhandler := handlers.TickerHandler{markets, *gormdb}
 	ws.Subscribe("ticker")
 	ws.On("ticker", tickerhandler.Handle)
-	fmt.Println("starting websocket")
 	ws.StartWS()
 	// block the main routine
 	select{}
