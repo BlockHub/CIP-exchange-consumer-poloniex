@@ -52,6 +52,10 @@ func init(){
 	}
 	raven.SetDSN(os.Getenv("RAVEN_DSN"))
 }
+func WorkerProcess(){
+
+}
+
 
 
 func main() {
@@ -90,6 +94,7 @@ func main() {
 	//start a replication worker
 	limit,  err:= strconv.ParseInt(os.Getenv("REPLICATION_LIMIT"), 10, 64)
 	replicator := pushers.Replicator{Local:*localdb, Remote:*remotedb, Limit:limit}
+	go replicator.PushMarkets()
 	go replicator.Start()
 
 	restClient := poloniex.NewPublicOnly()
