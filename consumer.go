@@ -14,8 +14,6 @@ import (
 
 	"strings"
 	"github.com/getsentry/raven-go"
-	"strconv"
-	"CIP-exchange-consumer-poloniex/pkg/pushers"
 )
 
 // uses rest api to create new orderbook and passes orderbook instances
@@ -36,26 +34,18 @@ func init_orderbook(client poloniex.Poloniex , market db.PoloniexMarket, gorm go
 }
 
 func init(){
-	useDotenv := true
-	if os.Getenv("PRODUCTION") == "true"{
-		useDotenv = false
-	}
-
-	// this loads all the constants stored in the .env file (not suitable for production)
-	// set variables in supervisor then.
-	if useDotenv {
+	if os.Getenv("PRODUCTION") != "true"{
 		err := godotenv.Load()
 		if err != nil {
 			log.Fatal(err)
 			panic(err)
 		}
 	}
+
+	// this loads all the constants stored in the .env file (not suitable for production)
+	// set variables in supervisor then.
 	raven.SetDSN(os.Getenv("RAVEN_DSN"))
 }
-func WorkerProcess(){
-
-}
-
 
 
 func main() {
@@ -65,24 +55,6 @@ func main() {
 		raven.CaptureErrorAndWait(err, nil)
 	}
 	defer localdb.Close()
-
-	localdb.AutoMigrate(&db.PoloniexTicker{}, &db.PoloniexMarket{}, &db.PoloniexOrder{}, &db.PoloniexOrderBook{})
-	err = localdb.Exec("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;").Error
-	if err != nil{
-		raven.CaptureErrorAndWait(err, nil)
-	}
-	err = localdb.Exec("SELECT create_hypertable('poloniex_orders', 'time', 'orderbook_id', if_not_exists => TRUE)").Error
-	if err != nil{
-		raven.CaptureErrorAndWait(err, nil)
-	}
-	err = localdb.Exec("SELECT create_hypertable('poloniex_tickers', 'time', 'market_id', if_not_exists => TRUE)").Error
-	if err != nil{
-		raven.CaptureErrorAndWait(err, nil)
-	}
-	err =localdb.Exec("SELECT create_hypertable('poloniex_order_books', 'time', 'market_id', if_not_exists => TRUE)").Error
-	if err != nil{
-		raven.CaptureErrorAndWait(err, nil)
-	}
 	localdb.DB().SetMaxOpenConns(1000)
 
 	remotedb, err := gorm.Open(os.Getenv("R_DB"), os.Getenv("R_DB_URL"))
@@ -91,11 +63,7 @@ func main() {
 	}
 	defer remotedb.Close()
 
-	//start a replication worker
-	limit,  err:= strconv.ParseInt(os.Getenv("REPLICATION_LIMIT"), 10, 64)
-	replicator := pushers.Replicator{Local:*localdb, Remote:*remotedb, Limit:limit}
-	go replicator.PushMarkets()
-	go replicator.Start()
+	db.Migrate(*localdb, *remotedb)
 
 	restClient := poloniex.NewPublicOnly()
 	// get the ticker so we know all available markets
