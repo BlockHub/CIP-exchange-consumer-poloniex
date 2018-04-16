@@ -89,10 +89,25 @@ func (r *Replicator) SendTickers(){
 	}
 }
 
+func (r *Replicator) SendTrades(){
+	err := r.Remote.Exec(
+		fmt.Sprintf(
+			`INSERT INTO poloniex_trades (id, market_id, rate, amount, total, buy, time)
+					SELECT *
+					FROM dblink(
+						'%s',
+						' DELETE FROM poloniex_trades WHERE id in (SELECT id FROM poloniex_trades ORDER BY time ASC LIMIT %d) RETURNING id, market_id, rate, amount, total, buy, time;'
+					) AS deleted (id INT, market_id INT, rate NUMERIC, amount NUMERIC, total NUMERIC, buy BOOLEAN, time TIMESTAMP)`, r.Name, r.Limit)).Error
+	if err != nil{
+		log.Panic(err)
+	}
+}
+
 func (r *Replicator) Start() {
 	// an out interface to store lots of Order objects
 	for true {
 		r.SendTickers()
 		r.SendOrders()
+		r.SendTrades()
 	}
 }
