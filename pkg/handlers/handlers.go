@@ -18,11 +18,23 @@ type TickerHandler struct {
 	db.AddTicker(t.Gorm, ticker.Ask, ticker.Bid, t.Markets[ticker.Pair])
 	}
 
+
 type OrderHandler struct {
 	Book db.PoloniexOrderBook
+	Market db.PoloniexMarket
 	Gorm gorm.DB
 }
 	func (oh OrderHandler)Handle(order poloniex.WSOrderbook){
+		var buy bool
+
+		if order.Event == "trade"{
+			switch event := order.Type; event {
+				case "sell": 	buy = false
+				default:		buy = true
+			}
+			db.AddTrade(oh.Gorm, oh.Market, order.Rate, order.Amount, order.Total, buy)
+			}
+
 		var TypeId int64
 		if order.Event == "modify"{
 			TypeId = 1
@@ -31,7 +43,6 @@ type OrderHandler struct {
 			TypeId = 2
 		}
 
-		var buy bool
 		if order.Type == "bid"{
 			buy = true
 		}

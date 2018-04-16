@@ -32,3 +32,13 @@ type PoloniexTicker struct {
 	Bid float64
 	Time time.Time		`gorm:"primary_key"`
 }
+
+type PoloniexTrade struct {
+	ID  uint64 			`gorm:"primary_key"`
+	MarketID uint64
+	Rate float64
+	Amount float64
+	Total float64
+	Buy bool
+	Time time.Time		`gorm:"primary_key"`
+}

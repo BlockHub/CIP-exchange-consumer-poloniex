@@ -45,3 +45,12 @@ func AddOrder(Gorm gorm.DB, Book PoloniexOrderBook, Rate float64, Quantity float
 		log.Panic(err)
 	}
 }
+
+
+func AddTrade(Gorm gorm.DB, Market PoloniexMarket, Rate float64, Amount float64, Total float64, Buy bool){
+	trade := PoloniexTrade{0, Market.ID, Rate, Amount, Total, Buy, time.Now()}
+	err := Gorm.Create(&trade).Error
+	if err != nil{
+		log.Panic(err)
+	}
+}

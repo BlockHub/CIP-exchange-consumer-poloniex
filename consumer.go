@@ -84,7 +84,7 @@ func main() {
 		// so we pass a map of market structs and market ids
 		markets[key] = market
 		ws.Subscribe(key)
-		handler := handlers.OrderHandler{book, *localdb}
+		handler := handlers.OrderHandler{book, market,*localdb}
 		ws.On(key, handler.Handle)
 	}
 	tickerhandler := handlers.TickerHandler{markets, *localdb}
